@@ -1,0 +1,27 @@
+[package]
+name = "cloudiful-notifier"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "Async notification delivery library for ntfy, generic webhooks, and DingTalk robots."
+readme = "README.md"
+repository = "https://github.com/cloudiful/notifier"
+homepage = "https://github.com/cloudiful/notifier"
+documentation = "https://docs.rs/cloudiful-notifier"
+keywords = ["notification", "webhook", "ntfy", "dingtalk"]
+categories = ["asynchronous", "web-programming::http-client"]
+publish = ["crates-io"]
+
+[lib]
+name = "cloudiful_notifier"
+
+[dependencies]
+anyhow = "1.0.100"
+base64 = "0.22.1"
+chrono = { version = "0.4.42", features = ["serde"] }
+hmac = "0.12.1"
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+sha2 = "0.10.9"
+urlencoding = "2.1.3"
