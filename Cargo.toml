@@ -19,9 +19,9 @@ name = "cloudiful_notifier"
 anyhow = "1.0.100"
 base64 = "0.22.1"
 chrono = { version = "0.4.42", features = ["serde"] }
-hmac = "0.12.1"
+hmac = "0.13.0"
 reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
-sha2 = "0.10.9"
+sha2 = "0.11.0"
 urlencoding = "2.1.3"
