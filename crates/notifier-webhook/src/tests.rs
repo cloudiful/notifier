@@ -1,0 +1,86 @@
+use std::{
+    collections::BTreeMap,
+    io::{Read, Write},
+    net::TcpListener,
+    sync::mpsc,
+    thread,
+};
+
+use cloudiful_notifier_core::{DeliveryChannel, MessageEnvelope, NotifierError};
+use serde_json::json;
+
+use crate::WebhookChannel;
+
+fn spawn_server(response: &'static str) -> (String, mpsc::Receiver<String>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = format!("http://{}", listener.local_addr().unwrap());
+    let (sender, receiver) = mpsc::channel();
+
+    thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let mut buffer = vec![0; 8192];
+        let size = stream.read(&mut buffer).unwrap();
+        sender
+            .send(String::from_utf8_lossy(&buffer[..size]).to_string())
+            .unwrap();
+        stream.write_all(response.as_bytes()).unwrap();
+    });
+
+    (address, receiver)
+}
+
+#[tokio::test]
+async fn webhook_sends_generic_json_payload() {
+    let (url, receiver) =
+        spawn_server("HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+    let mut extra_headers = BTreeMap::new();
+    extra_headers.insert("x-trace-id".to_string(), "abc".to_string());
+    let channel = WebhookChannel {
+        url,
+        bearer_token: Some("token-123".to_string()),
+        extra_headers,
+    };
+    let mut message = MessageEnvelope::new("plain body").with_title("Important");
+    message
+        .metadata
+        .insert("severity".to_string(), json!("critical"));
+
+    let result = channel
+        .deliver(&reqwest::Client::new(), &message)
+        .await
+        .unwrap();
+    let request = receiver.recv().unwrap();
+    let request_lower = request.to_ascii_lowercase();
+
+    assert_eq!(result.http_status, Some(200));
+    assert!(request.starts_with("POST / HTTP/1.1"));
+    assert!(request_lower.contains("authorization: bearer token-123"));
+    assert!(request_lower.contains("x-trace-id: abc"));
+    assert!(request.contains("\"title\":\"Important\""));
+    assert!(request.contains("\"body\":\"plain body\""));
+    assert!(request.contains("\"metadata\":{\"severity\":\"critical\"}"));
+}
+
+#[tokio::test]
+async fn webhook_rejects_reserved_headers() {
+    let mut extra_headers = BTreeMap::new();
+    extra_headers.insert("Authorization".to_string(), "override".to_string());
+    let channel = WebhookChannel {
+        url: "https://example.com".to_string(),
+        bearer_token: None,
+        extra_headers,
+    };
+    let message = MessageEnvelope::new("body");
+
+    let error = channel
+        .deliver(&reqwest::Client::new(), &message)
+        .await
+        .unwrap_err();
+
+    assert_eq!(
+        error,
+        NotifierError::ReservedHeader {
+            header: "Authorization".to_string(),
+        }
+    );
+}

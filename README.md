@@ -10,57 +10,92 @@ Current providers:
 
 The crate focuses on transport concerns only:
 
-- provider config and secret types
-- payload shaping
+- provider config
+- provider-neutral message envelopes
 - request signing and header handling
 - uniform delivery results
 
 It intentionally does not own application-specific concepts such as user settings,
 notification templates, rule storage, or MCP tool surfaces.
 
+## Workspace layout
+
+- `cloudiful-notifier`: facade crate with `Notifier`
+- `cloudiful-notifier-core`: shared message, result, error, and trait types
+- `cloudiful-notifier-ntfy`: `ntfy` channel
+- `cloudiful-notifier-webhook`: generic JSON webhook channel
+- `cloudiful-notifier-dingtalk`: DingTalk robot channel
+
+## Features
+
+Default features include all providers.
+
+```toml
+[dependencies]
+cloudiful-notifier = { version = "0.2", default-features = false, features = ["webhook"] }
+```
+
+Available provider features:
+
+- `ntfy`
+- `webhook`
+- `dingtalk`
+
 ## Example
 
 ```rust
-use chrono::Utc;
 use cloudiful_notifier::{
-    ChannelConfig, ChannelProvider, NotificationChannel, NotificationMessage,
-    NotificationRuleRef, NotificationSignalRef, NotificationStockRef, Notifier,
-    NtfyChannelConfig,
+    MessageEnvelope, Notifier, WebhookChannel,
+};
+use serde_json::json;
+use std::collections::BTreeMap;
+
+let mut extra_headers = BTreeMap::new();
+extra_headers.insert("x-source".to_string(), "pricing".to_string());
+
+let channel = WebhookChannel {
+    url: "https://example.com/hooks/alerts".to_string(),
+    bearer_token: Some("token-123".to_string()),
+    extra_headers,
 };
 
-let channel = NotificationChannel {
-    name: "ops".to_string(),
-    provider: ChannelProvider::Ntfy,
-    config: ChannelConfig::Ntfy(NtfyChannelConfig {
-        base_url: "https://ntfy.sh".to_string(),
-        topic: "alerts".to_string(),
-    }),
-    secret: None,
-    enabled: true,
-};
-
-let message = NotificationMessage {
-    event_id: 1,
-    triggered_at: Utc::now(),
-    title: "Stock alert 600519.SH".to_string(),
-    rule: NotificationRuleRef {
-        id: 2,
-        name: "price break".to_string(),
-        mode: "simple".to_string(),
-    },
-    stock: NotificationStockRef {
-        ts_code: "600519.SH".to_string(),
-        name: Some("贵州茅台".to_string()),
-    },
-    signal: NotificationSignalRef {
-        message: "latest_price >= 1500".to_string(),
-        raw_message: "latest_price >= 1500".to_string(),
-        metric_value: Some(1501.0),
-        threshold_value: Some(1500.0),
-    },
-};
+let mut message = MessageEnvelope::new("Threshold exceeded").with_title("Market alert");
+message
+    .metadata
+    .insert("symbol".to_string(), json!("600519.SH"));
+message
+    .metadata
+    .insert("threshold".to_string(), json!(1500.0));
 
 let client = reqwest::Client::new();
 let notifier = Notifier::new(client);
-# let _ = (&channel, &message, &notifier);
+# let _ = notifier.send(&channel, &message).await;
 ```
+
+Webhook payloads use the generic envelope shape:
+
+```json
+{
+  "title": "Market alert",
+  "body": "Threshold exceeded",
+  "metadata": {
+    "symbol": "600519.SH",
+    "threshold": 1500.0
+  }
+}
+```
+
+Text-oriented providers treat the envelope differently:
+
+- `ntfy`: `title` maps to the `Title` header, `body` is sent as-is
+- `dingtalk`: message text is `title + "\n" + body` when a title exists
+
+## Publishing
+
+This repository is a Cargo workspace. Publish order matters:
+
+1. `cloudiful-notifier-core`
+2. `cloudiful-notifier-ntfy`
+3. `cloudiful-notifier-webhook`
+4. `cloudiful-notifier-dingtalk`
+5. `cloudiful-notifier`

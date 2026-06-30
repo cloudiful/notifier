@@ -34,5 +34,20 @@ jobs:
         id: auth
         uses: rust-lang/crates-io-auth-action@v1
 
-      - name: Publish crate
-        run: cargo publish --registry crates-io --token "${{ steps.auth.outputs.token }}"
+      - name: Publish core crate
+        run: cargo publish -p cloudiful-notifier-core --registry crates-io --token "${{ steps.auth.outputs.token }}"
+
+      - name: Wait for core crate index update
+        run: sleep 30
+
+      - name: Publish provider crates
+        run: |
+          cargo publish -p cloudiful-notifier-ntfy --registry crates-io --token "${{ steps.auth.outputs.token }}"
+          cargo publish -p cloudiful-notifier-webhook --registry crates-io --token "${{ steps.auth.outputs.token }}"
+          cargo publish -p cloudiful-notifier-dingtalk --registry crates-io --token "${{ steps.auth.outputs.token }}"
+
+      - name: Wait for provider crate index update
+        run: sleep 30
+
+      - name: Publish facade crate
+        run: cargo publish -p cloudiful-notifier --registry crates-io --token "${{ steps.auth.outputs.token }}"
