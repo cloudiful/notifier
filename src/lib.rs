@@ -4,6 +4,8 @@ pub use cloudiful_notifier_core::{
 
 #[cfg(feature = "dingtalk")]
 pub use cloudiful_notifier_dingtalk::DingtalkChannel;
+#[cfg(feature = "email")]
+pub use cloudiful_notifier_email::{EmailChannel, EmailTlsMode};
 #[cfg(feature = "ntfy")]
 pub use cloudiful_notifier_ntfy::NtfyChannel;
 #[cfg(feature = "webhook")]

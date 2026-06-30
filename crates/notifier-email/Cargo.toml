@@ -1,0 +1,18 @@
+[package]
+name = "cloudiful-notifier-email"
+version = "0.2.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/cloudiful-notifier-email"
+description = "SMTP email provider for cloudiful-notifier."
+
+[dependencies]
+cloudiful-notifier-core = { path = "../notifier-core", version = "0.2.0" }
+lettre.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true

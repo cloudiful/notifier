@@ -28,6 +28,10 @@ pub enum NotifierError {
         provider: &'static str,
         message: String,
     },
+    Transport {
+        provider: &'static str,
+        message: String,
+    },
     HttpStatus {
         provider: &'static str,
         status: u16,
@@ -70,6 +74,9 @@ impl Display for NotifierError {
             }
             Self::HttpRequest { provider, message } => {
                 write!(f, "{provider} request failed: {message}")
+            }
+            Self::Transport { provider, message } => {
+                write!(f, "{provider} transport failed: {message}")
             }
             Self::HttpStatus { provider, status } => {
                 write!(f, "{provider} request failed with status {status}")

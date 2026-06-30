@@ -4,6 +4,7 @@ use std::{
     net::TcpListener,
     sync::mpsc,
     thread,
+    time::Duration,
 };
 
 use cloudiful_notifier_core::{DeliveryChannel, MessageEnvelope, NotifierError};
@@ -18,10 +19,30 @@ fn spawn_server(response: &'static str) -> (String, mpsc::Receiver<String>) {
 
     thread::spawn(move || {
         let (mut stream, _) = listener.accept().unwrap();
-        let mut buffer = vec![0; 8192];
-        let size = stream.read(&mut buffer).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_millis(50)))
+            .unwrap();
+        let mut buffer = Vec::with_capacity(8192);
+        let mut chunk = [0; 1024];
+
+        loop {
+            match stream.read(&mut chunk) {
+                Ok(0) => break,
+                Ok(size) => buffer.extend_from_slice(&chunk[..size]),
+                Err(error)
+                    if matches!(
+                        error.kind(),
+                        std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                    ) =>
+                {
+                    break;
+                }
+                Err(error) => panic!("failed to read request: {error}"),
+            }
+        }
+
         sender
-            .send(String::from_utf8_lossy(&buffer[..size]).to_string())
+            .send(String::from_utf8_lossy(&buffer).to_string())
             .unwrap();
         stream.write_all(response.as_bytes()).unwrap();
     });

@@ -7,6 +7,7 @@ Current providers:
 - `ntfy`
 - generic JSON webhooks
 - DingTalk custom robots
+- SMTP email
 
 The crate focuses on transport concerns only:
 
@@ -25,6 +26,7 @@ notification templates, rule storage, or MCP tool surfaces.
 - `cloudiful-notifier-ntfy`: `ntfy` channel
 - `cloudiful-notifier-webhook`: generic JSON webhook channel
 - `cloudiful-notifier-dingtalk`: DingTalk robot channel
+- `cloudiful-notifier-email`: SMTP email channel
 
 ## Features
 
@@ -40,6 +42,7 @@ Available provider features:
 - `ntfy`
 - `webhook`
 - `dingtalk`
+- `email`
 
 ## Example
 
@@ -89,6 +92,34 @@ Text-oriented providers treat the envelope differently:
 
 - `ntfy`: `title` maps to the `Title` header, `body` is sent as-is
 - `dingtalk`: message text is `title + "\n" + body` when a title exists
+- `email`: `title` maps to `Subject`, `body` is plain text, optional `html_body` adds an HTML alternative part
+
+## Email example
+
+```rust
+use cloudiful_notifier::{
+    EmailChannel, EmailTlsMode, MessageEnvelope, Notifier,
+};
+
+let channel = EmailChannel {
+    smtp_host: "smtp.example.com".to_string(),
+    smtp_port: Some(587),
+    tls_mode: EmailTlsMode::StartTls,
+    username: Some("smtp-user".to_string()),
+    password: Some("smtp-pass".to_string()),
+    from: "Ops <ops@example.com>".to_string(),
+    to: vec!["alice@example.com".to_string()],
+    reply_to: Some("noreply@example.com".to_string()),
+};
+
+let message = MessageEnvelope::new("Threshold exceeded")
+    .with_title("Market alert")
+    .with_html_body("<p><strong>Threshold exceeded</strong></p>");
+
+let client = reqwest::Client::new();
+let notifier = Notifier::new(client);
+# let _ = notifier.send(&channel, &message).await;
+```
 
 ## Publishing
 
@@ -98,4 +129,5 @@ This repository is a Cargo workspace. Publish order matters:
 2. `cloudiful-notifier-ntfy`
 3. `cloudiful-notifier-webhook`
 4. `cloudiful-notifier-dingtalk`
-5. `cloudiful-notifier`
+5. `cloudiful-notifier-email`
+6. `cloudiful-notifier`
