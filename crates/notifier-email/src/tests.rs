@@ -1,6 +1,6 @@
-use cloudiful_notifier_core::{DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError};
+use crate::core::{DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError};
 
-use crate::{
+use super::{
     EmailChannel, EmailTlsMode,
     message::{build_message, build_transport},
     transport::{TransportKind, transport_kind},

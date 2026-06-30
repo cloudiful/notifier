@@ -1,4 +1,4 @@
-use crate::EmailTlsMode;
+use super::EmailTlsMode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TransportKind {

@@ -6,9 +6,9 @@ use std::{
     time::Duration,
 };
 
-use cloudiful_notifier_core::{DeliveryChannel, MessageEnvelope, NotifierError};
+use crate::core::{DeliveryChannel, MessageEnvelope, NotifierError};
 
-use crate::NtfyChannel;
+use super::NtfyChannel;
 
 fn spawn_server(response: &'static str) -> (String, mpsc::Receiver<String>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();

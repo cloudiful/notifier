@@ -3,12 +3,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde::Deserialize;
 use serde_json::json;
 
-use cloudiful_notifier_core::{
+use crate::core::{
     DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError, ensure_success_status,
     validate_http_url,
 };
 
-use crate::{DingtalkChannel, signing::sign};
+use super::{DingtalkChannel, signing::sign};
 
 #[derive(Debug, Deserialize)]
 struct DingtalkResponse {

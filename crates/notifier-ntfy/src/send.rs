@@ -1,9 +1,9 @@
-use cloudiful_notifier_core::{
+use crate::core::{
     DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError, ensure_success_status,
     validate_http_url,
 };
 
-use crate::NtfyChannel;
+use super::NtfyChannel;
 
 impl DeliveryChannel for NtfyChannel {
     async fn deliver(

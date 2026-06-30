@@ -3,23 +3,16 @@ name = "cloudiful-notifier"
 version = "0.2.1"
 edition.workspace = true
 license.workspace = true
-description = "Async notification delivery library for ntfy, generic webhooks, and DingTalk robots."
+description = "Async notification delivery library for ntfy, generic webhooks, DingTalk robots, and SMTP email."
 readme = "README.md"
 repository.workspace = true
 homepage.workspace = true
 documentation.workspace = true
-keywords = ["notification", "webhook", "ntfy", "dingtalk"]
+keywords = ["notification", "webhook", "ntfy", "dingtalk", "email"]
 categories = ["asynchronous", "web-programming::http-client"]
 publish = ["crates-io"]
 
 [workspace]
-members = [
-    "crates/notifier-core",
-    "crates/notifier-ntfy",
-    "crates/notifier-webhook",
-    "crates/notifier-dingtalk",
-    "crates/notifier-email",
-]
 
 [workspace.package]
 edition = "2024"
@@ -44,18 +37,20 @@ name = "cloudiful_notifier"
 
 [features]
 default = ["ntfy", "webhook", "dingtalk", "email"]
-ntfy = ["dep:cloudiful-notifier-ntfy"]
-webhook = ["dep:cloudiful-notifier-webhook"]
-dingtalk = ["dep:cloudiful-notifier-dingtalk"]
-email = ["dep:cloudiful-notifier-email"]
+ntfy = []
+webhook = []
+dingtalk = []
+email = []
 
 [dependencies]
+base64.workspace = true
+hmac.workspace = true
+lettre.workspace = true
 reqwest.workspace = true
-cloudiful-notifier-core = { path = "crates/notifier-core", version = "0.2.0" }
-cloudiful-notifier-ntfy = { path = "crates/notifier-ntfy", version = "0.2.0", optional = true }
-cloudiful-notifier-webhook = { path = "crates/notifier-webhook", version = "0.2.0", optional = true }
-cloudiful-notifier-dingtalk = { path = "crates/notifier-dingtalk", version = "0.2.0", optional = true }
-cloudiful-notifier-email = { path = "crates/notifier-email", version = "0.2.0", optional = true }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+urlencoding.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true

@@ -2,7 +2,7 @@ use base64::Engine;
 use hmac::{Hmac, Mac, digest::KeyInit};
 use sha2::Sha256;
 
-use cloudiful_notifier_core::NotifierError;
+use crate::core::NotifierError;
 
 type HmacSha256 = Hmac<Sha256>;
 

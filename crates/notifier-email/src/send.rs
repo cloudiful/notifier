@@ -1,9 +1,9 @@
-use cloudiful_notifier_core::{
+use crate::core::{
     DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError,
 };
 use lettre::AsyncTransport;
 
-use crate::{
+use super::{
     EmailChannel,
     message::{build_message, build_transport},
 };

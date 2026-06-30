@@ -1,11 +1,11 @@
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
 
-use cloudiful_notifier_core::{
+use crate::core::{
     DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError, ensure_success_status,
     is_reserved_header, validate_http_url,
 };
 
-use crate::WebhookChannel;
+use super::WebhookChannel;
 
 impl DeliveryChannel for WebhookChannel {
     async fn deliver(

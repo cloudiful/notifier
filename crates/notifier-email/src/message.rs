@@ -1,4 +1,4 @@
-use cloudiful_notifier_core::{MessageEnvelope, NotifierError};
+use crate::core::{MessageEnvelope, NotifierError};
 use lettre::{
     Message, Tokio1Executor,
     message::MultiPart,
@@ -8,7 +8,7 @@ use lettre::{
     },
 };
 
-use crate::{EmailChannel, EmailTlsMode};
+use super::{EmailChannel, EmailTlsMode};
 
 pub(crate) type EmailTransport = AsyncSmtpTransport<Tokio1Executor>;
 

@@ -19,14 +19,14 @@ The crate focuses on transport concerns only:
 It intentionally does not own application-specific concepts such as user settings,
 notification templates, rule storage, or MCP tool surfaces.
 
-## Workspace layout
+## Internal layout
 
-- `cloudiful-notifier`: facade crate with `Notifier`
-- `cloudiful-notifier-core`: shared message, result, error, and trait types
-- `cloudiful-notifier-ntfy`: `ntfy` channel
-- `cloudiful-notifier-webhook`: generic JSON webhook channel
-- `cloudiful-notifier-dingtalk`: DingTalk robot channel
-- `cloudiful-notifier-email`: SMTP email channel
+- `cloudiful-notifier`: only published crate, with `Notifier`
+- internal core module: shared message, result, error, and trait types
+- internal `ntfy` module
+- internal generic JSON webhook module
+- internal DingTalk module
+- internal SMTP email module
 
 ## Features
 
@@ -123,11 +123,5 @@ let notifier = Notifier::new(client);
 
 ## Publishing
 
-This repository is a Cargo workspace. Publish order matters:
-
-1. `cloudiful-notifier-core`
-2. `cloudiful-notifier-ntfy`
-3. `cloudiful-notifier-webhook`
-4. `cloudiful-notifier-dingtalk`
-5. `cloudiful-notifier-email`
-6. `cloudiful-notifier`
+This repository publishes a single crate: `cloudiful-notifier`.
+Provider and core implementations stay internal to the package.

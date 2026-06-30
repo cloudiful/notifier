@@ -1,15 +1,31 @@
-pub use cloudiful_notifier_core::{
+#[path = "../crates/notifier-core/src/lib.rs"]
+mod core;
+
+#[cfg(feature = "dingtalk")]
+#[path = "../crates/notifier-dingtalk/src/lib.rs"]
+mod dingtalk;
+#[cfg(feature = "email")]
+#[path = "../crates/notifier-email/src/lib.rs"]
+mod email;
+#[cfg(feature = "ntfy")]
+#[path = "../crates/notifier-ntfy/src/lib.rs"]
+mod ntfy;
+#[cfg(feature = "webhook")]
+#[path = "../crates/notifier-webhook/src/lib.rs"]
+mod webhook;
+
+pub use core::{
     DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError,
 };
 
 #[cfg(feature = "dingtalk")]
-pub use cloudiful_notifier_dingtalk::DingtalkChannel;
+pub use dingtalk::DingtalkChannel;
 #[cfg(feature = "email")]
-pub use cloudiful_notifier_email::{EmailChannel, EmailTlsMode};
+pub use email::{EmailChannel, EmailTlsMode};
 #[cfg(feature = "ntfy")]
-pub use cloudiful_notifier_ntfy::NtfyChannel;
+pub use ntfy::NtfyChannel;
 #[cfg(feature = "webhook")]
-pub use cloudiful_notifier_webhook::WebhookChannel;
+pub use webhook::WebhookChannel;
 
 #[derive(Debug, Clone)]
 pub struct Notifier {
@@ -32,11 +48,7 @@ impl Notifier {
 
 #[cfg(test)]
 mod tests {
-    use cloudiful_notifier_core::{
-        DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError,
-    };
-
-    use super::Notifier;
+    use super::{DeliveryChannel, DeliveryResult, MessageEnvelope, Notifier, NotifierError};
 
     struct StubChannel;
 
