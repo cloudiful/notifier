@@ -33,7 +33,7 @@ Default features include all providers.
 
 ```toml
 [dependencies]
-cloudiful-notifier = { version = "0.2", default-features = false, features = ["webhook"] }
+cloudiful-notifier = { version = "0.3", default-features = false, features = ["webhook"] }
 ```
 
 Available provider features:
