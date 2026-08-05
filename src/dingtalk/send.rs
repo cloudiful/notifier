@@ -8,7 +8,7 @@ use crate::core::{
     validate_http_url,
 };
 
-use super::{DingtalkChannel, signing::sign};
+use super::{DingtalkChannel, DingtalkMessageType, signing::sign};
 
 #[derive(Debug, Deserialize)]
 struct DingtalkResponse {
@@ -24,7 +24,7 @@ impl DeliveryChannel for DingtalkChannel {
     ) -> Result<DeliveryResult, NotifierError> {
         validate_http_url(&self.webhook_url)?;
 
-        let content = format_body(message, &self.keywords)?;
+        let payload = payload(self, message)?;
         let mut url = self.webhook_url.clone();
         if let Some(secret) = self.secret.as_deref() {
             let timestamp = SystemTime::now()
@@ -43,12 +43,7 @@ impl DeliveryChannel for DingtalkChannel {
 
         let response = http_client
             .post(url)
-            .json(&json!({
-                "msgtype": "text",
-                "text": {
-                    "content": content,
-                }
-            }))
+            .json(&payload)
             .send()
             .await
             .map_err(|error| NotifierError::HttpRequest {
@@ -80,7 +75,41 @@ impl DeliveryChannel for DingtalkChannel {
     }
 }
 
-fn format_body(message: &MessageEnvelope, keywords: &[String]) -> Result<String, NotifierError> {
+fn payload(
+    channel: &DingtalkChannel,
+    message: &MessageEnvelope,
+) -> Result<serde_json::Value, NotifierError> {
+    if channel.message_type == DingtalkMessageType::Markdown {
+        let title = message
+            .title
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| NotifierError::InvalidMessage {
+                provider: "dingtalk",
+                message: "markdown messages require `title`".to_string(),
+            })?;
+        return Ok(json!({
+            "msgtype": "markdown",
+            "markdown": {
+                "title": title,
+                "text": message.body,
+            }
+        }));
+    }
+
+    let content = format_text_body(message, &channel.keywords)?;
+    Ok(json!({
+        "msgtype": "text",
+        "text": {
+            "content": content,
+        }
+    }))
+}
+
+fn format_text_body(
+    message: &MessageEnvelope,
+    keywords: &[String],
+) -> Result<String, NotifierError> {
     if keywords.len() > 10 {
         return Err(NotifierError::InvalidMessage {
             provider: "dingtalk",

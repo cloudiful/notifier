@@ -8,7 +8,7 @@ use std::{
 
 use crate::core::{DeliveryChannel, MessageEnvelope, NotifierError};
 
-use super::{DingtalkChannel, signing::sign};
+use super::{DingtalkChannel, DingtalkMessageType, signing::sign};
 
 fn spawn_server(response: &'static str) -> (String, mpsc::Receiver<String>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -64,6 +64,7 @@ async fn dingtalk_sends_title_and_body() {
         webhook_url: format!("{base_url}/robot/send?access_token=abc"),
         secret: Some("SECabc".to_string()),
         keywords: vec!["ops".to_string()],
+        message_type: DingtalkMessageType::Text,
     };
     let message = MessageEnvelope::new("Body line").with_title("Critical");
 
@@ -84,6 +85,7 @@ async fn dingtalk_rejects_too_many_keywords() {
         webhook_url: "https://oapi.dingtalk.com/robot/send?access_token=abc".to_string(),
         secret: None,
         keywords: (0..11).map(|index| format!("k{index}")).collect(),
+        message_type: DingtalkMessageType::Text,
     };
     let message = MessageEnvelope::new("Body line");
 
@@ -97,6 +99,53 @@ async fn dingtalk_rejects_too_many_keywords() {
         NotifierError::InvalidMessage {
             provider: "dingtalk",
             message: "keywords cannot exceed 10".to_string(),
+        }
+    );
+}
+
+#[tokio::test]
+async fn dingtalk_sends_markdown_without_rewriting_body() {
+    let (base_url, receiver) = spawn_server(
+        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 27\r\nConnection: close\r\n\r\n{\"errcode\":0,\"errmsg\":\"ok\"}",
+    );
+    let channel = DingtalkChannel {
+        webhook_url: format!("{base_url}/robot/send?access_token=abc"),
+        secret: None,
+        keywords: (0..11).map(|index| format!("k{index}")).collect(),
+        message_type: DingtalkMessageType::Markdown,
+    };
+    let message = MessageEnvelope::new("## Body\n\n- Keep Markdown").with_title("Critical");
+
+    channel
+        .deliver(&reqwest::Client::new(), &message)
+        .await
+        .unwrap();
+    let request = receiver.recv().unwrap();
+
+    assert!(request.contains("\"msgtype\":\"markdown\""));
+    assert!(request.contains("\"title\":\"Critical\""));
+    assert!(request.contains("\"text\":\"## Body\\n\\n- Keep Markdown\""));
+}
+
+#[tokio::test]
+async fn dingtalk_markdown_requires_title() {
+    let channel = DingtalkChannel {
+        webhook_url: "https://oapi.dingtalk.com/robot/send?access_token=abc".to_string(),
+        secret: None,
+        keywords: Vec::new(),
+        message_type: DingtalkMessageType::Markdown,
+    };
+
+    let error = channel
+        .deliver(&reqwest::Client::new(), &MessageEnvelope::new("body"))
+        .await
+        .unwrap_err();
+
+    assert_eq!(
+        error,
+        NotifierError::InvalidMessage {
+            provider: "dingtalk",
+            message: "markdown messages require `title`".to_string(),
         }
     );
 }

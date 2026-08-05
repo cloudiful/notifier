@@ -2,10 +2,7 @@ use crate::core::{MessageEnvelope, NotifierError};
 use lettre::{
     Message, Tokio1Executor,
     message::MultiPart,
-    transport::smtp::{
-        AsyncSmtpTransport,
-        authentication::Credentials,
-    },
+    transport::smtp::{AsyncSmtpTransport, authentication::Credentials},
 };
 
 use super::{EmailChannel, EmailTlsMode};
@@ -22,7 +19,9 @@ pub(crate) fn build_message(
         .filter(|value| !value.trim().is_empty())
         .ok_or_else(|| invalid_message("email subject requires `title`"))?;
     if channel.to.is_empty() {
-        return Err(invalid_message("email channel requires at least one `to` recipient"));
+        return Err(invalid_message(
+            "email channel requires at least one `to` recipient",
+        ));
     }
     validate_auth_pair(channel)?;
 
@@ -53,8 +52,10 @@ pub(crate) fn build_transport(channel: &EmailChannel) -> Result<EmailTransport, 
     validate_auth_pair(channel)?;
 
     let mut builder = match channel.tls_mode {
-        EmailTlsMode::ImplicitTls => AsyncSmtpTransport::<Tokio1Executor>::relay(&channel.smtp_host)
-            .map_err(|error| transport_error(error.to_string()))?,
+        EmailTlsMode::ImplicitTls => {
+            AsyncSmtpTransport::<Tokio1Executor>::relay(&channel.smtp_host)
+                .map_err(|error| transport_error(error.to_string()))?
+        }
         EmailTlsMode::StartTls => {
             AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&channel.smtp_host)
                 .map_err(|error| transport_error(error.to_string()))?

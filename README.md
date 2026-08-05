@@ -1,6 +1,6 @@
 # cloudiful-notifier
 
-`cloudiful-notifier` is a small async delivery library for outbound notifications.
+`cloudiful-notifier` 0.3 is a small async delivery library for outbound notifications.
 
 Current providers:
 
@@ -21,12 +21,11 @@ notification templates, rule storage, or MCP tool surfaces.
 
 ## Internal layout
 
-- `cloudiful-notifier`: only published crate, with `Notifier`
-- internal core module: shared message, result, error, and trait types
-- internal `ntfy` module
-- internal generic JSON webhook module
-- internal DingTalk module
-- internal SMTP email module
+- `src/core`: shared message, result, error, and trait types
+- `src/ntfy`: ntfy channel
+- `src/webhook`: generic JSON webhook channel
+- `src/dingtalk`: DingTalk text and Markdown robot channel
+- `src/email`: SMTP email channel
 
 ## Features
 
@@ -43,6 +42,20 @@ Available provider features:
 - `webhook`
 - `dingtalk`
 - `email`
+
+The 0.3 release makes provider-specific dependencies optional. Consumers that
+only need DingTalk can disable default features and compile a smaller dependency
+set:
+
+```toml
+[dependencies]
+cloudiful-notifier = { version = "0.3", default-features = false, features = ["dingtalk"] }
+```
+
+DingTalk channels default to text messages. Set `message_type` to
+`DingtalkMessageType::Markdown` to send the envelope title and body as a
+Markdown robot message. Markdown messages require a non-blank title and send the
+body unchanged.
 
 ## Example
 

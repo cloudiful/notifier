@@ -1,25 +1,20 @@
-#[path = "../crates/notifier-core/src/lib.rs"]
 mod core;
 
 #[cfg(feature = "dingtalk")]
-#[path = "../crates/notifier-dingtalk/src/lib.rs"]
 mod dingtalk;
 #[cfg(feature = "email")]
-#[path = "../crates/notifier-email/src/lib.rs"]
 mod email;
 #[cfg(feature = "ntfy")]
-#[path = "../crates/notifier-ntfy/src/lib.rs"]
 mod ntfy;
 #[cfg(feature = "webhook")]
-#[path = "../crates/notifier-webhook/src/lib.rs"]
 mod webhook;
 
-pub use core::{
-    DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError,
-};
+pub use core::{DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError};
 
 #[cfg(feature = "dingtalk")]
 pub use dingtalk::DingtalkChannel;
+#[cfg(feature = "dingtalk")]
+pub use dingtalk::DingtalkMessageType;
 #[cfg(feature = "email")]
 pub use email::{EmailChannel, EmailTlsMode};
 #[cfg(feature = "ntfy")]

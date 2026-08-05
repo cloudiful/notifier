@@ -1,6 +1,6 @@
 [package]
 name = "cloudiful-notifier"
-version = "0.2.1"
+version = "0.3.0"
 edition.workspace = true
 license.workspace = true
 description = "Async notification delivery library for ntfy, generic webhooks, DingTalk robots, and SMTP email."
@@ -39,18 +39,18 @@ name = "cloudiful_notifier"
 default = ["ntfy", "webhook", "dingtalk", "email"]
 ntfy = []
 webhook = []
-dingtalk = []
-email = []
+dingtalk = ["dep:base64", "dep:hmac", "dep:sha2", "dep:urlencoding"]
+email = ["dep:lettre"]
 
 [dependencies]
-base64.workspace = true
-hmac.workspace = true
-lettre.workspace = true
+base64 = { workspace = true, optional = true }
+hmac = { workspace = true, optional = true }
+lettre = { workspace = true, optional = true }
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-sha2.workspace = true
-urlencoding.workspace = true
+sha2 = { workspace = true, optional = true }
+urlencoding = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio.workspace = true

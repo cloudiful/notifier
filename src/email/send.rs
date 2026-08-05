@@ -1,6 +1,4 @@
-use crate::core::{
-    DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError,
-};
+use crate::core::{DeliveryChannel, DeliveryResult, MessageEnvelope, NotifierError};
 use lettre::AsyncTransport;
 
 use super::{
