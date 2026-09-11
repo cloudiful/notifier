@@ -1,6 +1,6 @@
 [package]
 name = "cloudiful-notifier"
-version = "0.3.0"
+version = "0.3.1"
 edition.workspace = true
 license.workspace = true
 description = "Async notification delivery library for ntfy, generic webhooks, DingTalk robots, and SMTP email."
